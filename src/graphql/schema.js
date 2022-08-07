@@ -6,7 +6,9 @@ const {
   post,
   commentList,
   comment,
+  imageList,
 } = require("./queries");
+
 const {
   register,
   login,
@@ -16,12 +18,15 @@ const {
   createComment,
   updateComment,
   deleteComment,
+  createImage,
+  createAvatar,
+  updateUser,
 } = require("./mutations");
 
 const QueryType = new GraphQLObjectType({
   name: "QueryType",
   description: "The root query type",
-  fields: { usersList, user, postsList, post, commentList, comment },
+  fields: { usersList, user, postsList, post, commentList, comment, imageList },
 });
 
 const MutatinType = new GraphQLObjectType({
@@ -36,6 +41,9 @@ const MutatinType = new GraphQLObjectType({
     createComment,
     updateComment,
     deleteComment,
+    createImage,
+    createAvatar,
+    updateUser,
   },
 });
 

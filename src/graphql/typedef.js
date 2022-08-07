@@ -4,19 +4,24 @@ const {
   GraphQLID,
   GraphQLList,
 } = require("graphql");
-const { User, Post, Comment } = require("../models");
+const { User, Post, Comment, Image, Avatar } = require("../models");
 
 const UserType = new GraphQLObjectType({
   name: "UserType",
   description: "typed for the user model",
-  fields: {
+  fields: () => ({
     id: { type: GraphQLID },
     username: { type: GraphQLString },
     email: { type: GraphQLString },
     displayName: { type: GraphQLString },
+    bio: { type: GraphQLString },
+    avatar: {
+      type: AvatarType,
+      resolve: (parent) => Avatar.findById(parent.avatarId),
+    },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
-  },
+  }),
 });
 
 const PostType = new GraphQLObjectType({
@@ -26,6 +31,11 @@ const PostType = new GraphQLObjectType({
     id: { type: GraphQLID },
     title: { type: GraphQLString },
     body: { type: GraphQLString },
+    slug: { type: GraphQLString },
+    featuredImage: {
+      type: imageType,
+      resolve: (parent) => Image.findById(parent.imageId),
+    },
     author: {
       type: UserType,
       resolve: (parent) => User.findById(parent.authorId),
@@ -58,4 +68,32 @@ const CommentType = new GraphQLObjectType({
   },
 });
 
-module.exports = { UserType, PostType, CommentType };
+const imageType = new GraphQLObjectType({
+  name: "imageType",
+  description: "typed for the image model",
+  fields: {
+    id: { type: GraphQLID },
+    url: { type: GraphQLString },
+    post: {
+      type: PostType,
+      resolve: (parent) => Post.findById(parent.postId),
+    },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+  },
+});
+
+const AvatarType = new GraphQLObjectType({
+  name: "AvatarType",
+  description: "typed for the image model",
+  fields: {
+    id: { type: GraphQLID },
+    url: { type: GraphQLString },
+    user: {
+      type: UserType,
+      resolve: (parent) => User.findById(parent.userId),
+    },
+  },
+});
+
+module.exports = { UserType, PostType, CommentType, imageType, AvatarType };

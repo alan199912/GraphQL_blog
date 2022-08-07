@@ -1,6 +1,6 @@
 const { GraphQLList, GraphQLID } = require("graphql");
-const { UserType, PostType, CommentType } = require("./typedef");
-const { User, Post, Comment } = require("../models");
+const { UserType, PostType, CommentType, imageType } = require("./typedef");
+const { User, Post, Comment, Image } = require("../models");
 
 const usersList = {
   type: new GraphQLList(UserType),
@@ -51,4 +51,18 @@ const comment = {
   resolve: async (_, { id }) => await Comment.findById(id),
 };
 
-module.exports = { usersList, user, postsList, post, commentList, comment };
+const imageList = {
+  type: new GraphQLList(imageType),
+  description: "Get image list",
+  resolve: async () => await Image.find(),
+};
+
+module.exports = {
+  usersList,
+  user,
+  postsList,
+  post,
+  commentList,
+  comment,
+  imageList,
+};

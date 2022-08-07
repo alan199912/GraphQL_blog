@@ -10,9 +10,15 @@ const postSchema = new Schema(
       type: String,
       required: true,
     },
+    slug: { type: String, required: true },
     authorId: {
       type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
+    },
+    imageId: {
+      type: Schema.Types.ObjectId,
+      ref: "Image",
       required: true,
     },
   },

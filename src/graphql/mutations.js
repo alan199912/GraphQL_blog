@@ -1,7 +1,13 @@
 const { GraphQLString, GraphQLID } = require("graphql");
-const { User, Post, Comment } = require("../models");
+const { User, Post, Comment, Image, Avatar } = require("../models");
 const { createJWTToken } = require("../util/auth");
-const { PostType, CommentType } = require("./typedef");
+const {
+  PostType,
+  CommentType,
+  imageType,
+  AvatarType,
+  UserType,
+} = require("./typedef");
 
 const register = {
   type: GraphQLString,
@@ -60,6 +66,55 @@ const login = {
   },
 };
 
+const updateUser = {
+  type: UserType,
+  description: "Update a user",
+  args: {
+    id: { type: GraphQLID },
+    username: {
+      type: GraphQLString,
+    },
+    email: {
+      type: GraphQLString,
+    },
+    password: {
+      type: GraphQLString,
+    },
+    displayName: {
+      type: GraphQLString,
+    },
+    bio: {
+      type: GraphQLString,
+    },
+    avatarId: {
+      type: GraphQLID,
+    },
+  },
+  async resolve(
+    _,
+    { id, username, email, password, displayName, bio, avatarId },
+    { verifyUser }
+  ) {
+    // if (!verifyUser) {
+    //   throw new Error("Unauthorized access");
+    // }
+    const updatedUser = await User.findByIdAndUpdate(
+      { _id: id },
+      {
+        username,
+        email,
+        password,
+        displayName,
+        bio,
+        avatarId,
+      },
+      { new: true, runValidators: true }
+    );
+
+    return updatedUser;
+  },
+};
+
 const createPost = {
   type: PostType,
   description: "Create a new post",
@@ -75,6 +130,7 @@ const createPost = {
     const newPost = new Post({
       title: args.title,
       body: args.body,
+      slug: args.slug,
       authorId: verifyUser._id,
     });
 
@@ -92,14 +148,14 @@ const updatePost = {
     title: { type: GraphQLString },
     body: { type: GraphQLString },
   },
-  resolve: async (_, { id, title, body }, { verifyUser }) => {
+  resolve: async (_, { id, title, body, slug }, { verifyUser }) => {
     if (!verifyUser) {
       throw new Error("Unauthorized access");
     }
 
     const updatedPost = await Post.findByIdAndUpdate(
       { _id: id, authorId: verifyUser._id },
-      { title, body },
+      { title, body, slug },
       { new: true, runValidators: true }
     );
 
@@ -209,6 +265,52 @@ const deleteComment = {
   },
 };
 
+const createImage = {
+  type: imageType,
+  description: "Create a new image",
+  args: {
+    postId: { type: GraphQLID },
+    url: { type: GraphQLString },
+  },
+  resolve: async (_, { url, postId }, { verifyUser }) => {
+    // if (!verifyUser) {
+    //   throw new Error("Unauthorized access");
+    // }
+
+    const newImage = new Image({
+      url,
+      postId,
+    });
+
+    const imageSaved = await newImage.save();
+
+    return imageSaved;
+  },
+};
+
+const createAvatar = {
+  type: AvatarType,
+  description: "Create a new avatar",
+  args: {
+    userId: { type: GraphQLID },
+    url: { type: GraphQLString },
+  },
+  resolve: async (_, { url, userId }, { verifyUser }) => {
+    // if (!verifyUser) {
+    //   throw new Error("Unauthorized access");
+    // }
+
+    const newAvatar = new Avatar({
+      url,
+      userId,
+    });
+
+    const avatarSaved = await newAvatar.save();
+
+    return avatarSaved;
+  },
+};
+
 module.exports = {
   register,
   login,
@@ -218,4 +320,7 @@ module.exports = {
   createComment,
   updateComment,
   deleteComment,
+  createImage,
+  createAvatar,
+  updateUser,
 };
