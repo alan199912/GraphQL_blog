@@ -7,6 +7,12 @@ const {
   commentList,
   comment,
   imageList,
+  getRecentPosts,
+  categoryList,
+  postBySlug,
+  getSimilarPosts,
+  getFeaturedPosts,
+  getPostsByCategory,
 } = require("./queries");
 
 const {
@@ -21,12 +27,27 @@ const {
   createImage,
   createAvatar,
   updateUser,
+  createCategory,
 } = require("./mutations");
 
 const QueryType = new GraphQLObjectType({
   name: "QueryType",
   description: "The root query type",
-  fields: { usersList, user, postsList, post, commentList, comment, imageList },
+  fields: {
+    usersList,
+    user,
+    postsList,
+    post,
+    commentList,
+    comment,
+    imageList,
+    getRecentPosts,
+    categoryList,
+    postBySlug,
+    getSimilarPosts,
+    getFeaturedPosts,
+    getPostsByCategory,
+  },
 });
 
 const MutatinType = new GraphQLObjectType({
@@ -44,6 +65,7 @@ const MutatinType = new GraphQLObjectType({
     createImage,
     createAvatar,
     updateUser,
+    createCategory,
   },
 });
 

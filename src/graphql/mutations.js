@@ -1,5 +1,5 @@
-const { GraphQLString, GraphQLID } = require("graphql");
-const { User, Post, Comment, Image, Avatar } = require("../models");
+const { GraphQLString, GraphQLID, GraphQLBoolean } = require("graphql");
+const { User, Post, Comment, Image, Avatar, Category } = require("../models");
 const { createJWTToken } = require("../util/auth");
 const {
   PostType,
@@ -7,6 +7,7 @@ const {
   imageType,
   AvatarType,
   UserType,
+  CategoryType,
 } = require("./typedef");
 
 const register = {
@@ -121,6 +122,7 @@ const createPost = {
   args: {
     title: { type: GraphQLString },
     body: { type: GraphQLString },
+    isFeatured: { type: GraphQLBoolean },
   },
   resolve: async (_, args, { verifyUser }) => {
     if (!verifyUser) {
@@ -131,6 +133,7 @@ const createPost = {
       title: args.title,
       body: args.body,
       slug: args.slug,
+      isFeatured: args.isFeatured,
       authorId: verifyUser._id,
     });
 
@@ -147,15 +150,16 @@ const updatePost = {
     id: { type: GraphQLID },
     title: { type: GraphQLString },
     body: { type: GraphQLString },
+    isFeatured: { type: GraphQLBoolean },
   },
-  resolve: async (_, { id, title, body, slug }, { verifyUser }) => {
+  resolve: async (_, { id, title, body, slug, isFeatured }, { verifyUser }) => {
     if (!verifyUser) {
       throw new Error("Unauthorized access");
     }
 
     const updatedPost = await Post.findByIdAndUpdate(
       { _id: id, authorId: verifyUser._id },
-      { title, body, slug },
+      { title, body, slug, isFeatured },
       { new: true, runValidators: true }
     );
 
@@ -195,22 +199,39 @@ const createComment = {
   type: CommentType,
   description: "Create a new comment",
   args: {
-    postId: { type: GraphQLID },
+    // todo: we validate the postId with his slug
+    // postId: { type: GraphQLID },
+    slug: { type: GraphQLString },
     comment: { type: GraphQLString },
+    // todo: by the moment we dont have authentication, so we validate email and name for the user who comment the post
+    email: { type: GraphQLString },
+    name: { type: GraphQLString },
   },
-  resolve: async (_, { comment, postId }, { verifyUser }) => {
-    if (!verifyUser) {
-      throw new Error("Unauthorized access");
+  resolve: async (_, { comment, slug, email, name }, { verifyUser }) => {
+    // FIXME: when we have authentication, we need to validate the user who comment the post
+    // if (!verifyUser) {
+    //   throw new Error("Unauthorized access");
+    // }
+
+    const post = await Post.findOne({ slug });
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    const user = await User.findOne({ email, displayName: name });
+    if (!user) {
+      throw new Error("User not found");
     }
 
     const newComment = new Comment({
       comment,
-      postId,
-      userId: verifyUser._id,
+      postId: post._id,
+      // FIXME: When we have authentication, we need to add the user who comment the post
+      // userId: verifyUser._id,
+      userId: user._id,
     });
 
     const commentSaved = await newComment.save();
-
     return commentSaved;
   },
 };
@@ -311,6 +332,29 @@ const createAvatar = {
   },
 };
 
+const createCategory = {
+  type: CategoryType,
+  description: "Create a new category",
+  args: {
+    name: { type: GraphQLString },
+    slug: { type: GraphQLString },
+  },
+  resolve: async (_, { name, slug }, { verifyUser }) => {
+    // if (!verifyUser) {
+    //   throw new Error("Unauthorized access");
+    // }
+
+    const newCategory = new Category({
+      name,
+      slug,
+    });
+
+    const categorySaved = await newCategory.save();
+
+    return categorySaved;
+  },
+};
+
 module.exports = {
   register,
   login,
@@ -323,4 +367,5 @@ module.exports = {
   createImage,
   createAvatar,
   updateUser,
+  createCategory,
 };
