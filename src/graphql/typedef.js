@@ -4,7 +4,7 @@ const {
   GraphQLID,
   GraphQLList,
 } = require("graphql");
-const { User, Post, Comment, Image, Avatar } = require("../models");
+const { User, Post, Comment, Image, Avatar, Category } = require("../models");
 
 const UserType = new GraphQLObjectType({
   name: "UserType",
@@ -43,6 +43,10 @@ const PostType = new GraphQLObjectType({
     comment: {
       type: new GraphQLList(CommentType),
       resolve: (parent) => Comment.find({ postId: parent._id }),
+    },
+    category: {
+      type: CategoryType,
+      resolve: (parent) => Category.findById(parent.categoryId),
     },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
@@ -96,4 +100,21 @@ const AvatarType = new GraphQLObjectType({
   },
 });
 
-module.exports = { UserType, PostType, CommentType, imageType, AvatarType };
+const CategoryType = new GraphQLObjectType({
+  name: "CategoryType",
+  description: "typed for the category model",
+  fields: {
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    slug: { type: GraphQLString },
+  },
+});
+
+module.exports = {
+  UserType,
+  PostType,
+  CommentType,
+  imageType,
+  AvatarType,
+  CategoryType,
+};
