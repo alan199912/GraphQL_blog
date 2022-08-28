@@ -11,6 +11,7 @@ const postSchema = new Schema(
       required: true,
     },
     slug: { type: String, required: true },
+    isFeatured: { type: Boolean, required: true },
     authorId: {
       type: Schema.Types.ObjectId,
       ref: "User",
@@ -19,6 +20,11 @@ const postSchema = new Schema(
     imageId: {
       type: Schema.Types.ObjectId,
       ref: "Image",
+      required: true,
+    },
+    categoryId: {
+      type: Schema.Types.ObjectId,
+      ref: "Category",
       required: true,
     },
   },
